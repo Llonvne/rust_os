@@ -6,6 +6,7 @@
 
 use core::panic::PanicInfo;
 use rust_os::{QemuExitCode, exit_qemu, serial_println};
+use rust_os::QemuExitCode::Failed;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -16,23 +17,13 @@ fn panic(_info: &PanicInfo) -> ! {
 
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    test_main();
-
+    should_fail();
+    serial_println!("[test did not panic]");
+    exit_qemu(Failed);
     loop {}
 }
 
-pub fn test_runner(tests: &[&dyn Fn()]) {
-    serial_println!("Running {} tests", tests.len());
-    for test in tests {
-        test();
-        serial_println!("[test did not panic]");
-        exit_qemu(QemuExitCode::Failed);
-    }
-    exit_qemu(QemuExitCode::Success);
-}
-
-#[test_case]
-fn should_fail(){
+fn should_fail() {
     serial_println!("should fail ...");
-    assert_eq!(0,1);
+    assert_eq!(0, 1);
 }
